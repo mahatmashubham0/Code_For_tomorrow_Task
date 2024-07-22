@@ -72,17 +72,16 @@ export class TodoService {
   // Find All Completed || pending Tasks
   async findByFilters(id: string ,status: TaskStatus) {
     try {
-      console.log(status);
-      
-      const filteredData = await this.prisma.todo.findMany({
-        where: {
-          id: Number(id),
-          status: status
-        }
-      });
-      console.log(filteredData);
-      
-      return filteredData;
+        const todos = await this.prisma.todo.findMany({
+          where: {
+             authorID: Number(id)
+          },
+        });
+    
+        const filteredTodos = todos.filter(todo => todo.status === status);
+    
+        return filteredTodos;
+
     } catch (err) {
       console.error(err);
       throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
@@ -90,13 +89,14 @@ export class TodoService {
   }
 
   // find the task according the search functionality and using pagination
-  async getTodoBasedOnTheSearch(page: number, pageSize: number, search: string) {
+  async getTodoBasedOnTheSearch(id:number , page: number, pageSize: number, search: string) {
     const skip = (page - 1) * pageSize;
     const take = pageSize;
 
     const [todos, total] = await Promise.all([
       this.prisma.todo.findMany({
         where: {
+          authorID: id,
           title: {
             contains: search,
             mode: "insensitive"
@@ -104,9 +104,6 @@ export class TodoService {
         },
         skip,
         take,
-        orderBy: {
-          createdAt: 'asc',
-        },
       }),
       // this below code count the total todo
       this.prisma.todo.count(),
@@ -129,6 +126,9 @@ export class TodoService {
       console.log(page , pageSize , skip , take)
       const [todos, total] = await Promise.all([
         this.prisma.todo.findMany({
+          where: {
+            authorID: id,
+          },
           skip,
           take,
         }),

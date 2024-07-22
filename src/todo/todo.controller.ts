@@ -62,7 +62,7 @@ export class TodoController {
   @UseGuards(new UserGuard)
   @Get()
   async findByFilters(
-    @Query('status/:todoId') status: TaskStatus , 
+    @Query('status') status: TaskStatus , 
     @Res() res:Response,
     @Req() req: Request  & { user: ValidatedUser },
   ) {
@@ -77,13 +77,13 @@ export class TodoController {
 
   // find the task by pagination
   @UseGuards(new UserGuard)
-  @Get(':todoId')
+  @Get('pages')
   async findTaskByPagination(
     @Query('page') page: number,
     @Query('pageSize') pageSize: number,
-    @Param('todoId') todoId: number,
+    @Req() req: Request  & { user: ValidatedUser },
   ) {
-    return this.todoService.findDataByPagination(Number(todoId) , Number(page), Number(pageSize));
+    return this.todoService.findDataByPagination(Number(req.user.id) , Number(page), Number(pageSize));
   }
 
 
@@ -96,8 +96,9 @@ export class TodoController {
     @Query('page') page: number = 1,
     @Query('pageSize') pageSize: number = 10,
     @Query('search') search: string = '',
+    @Req() req: Request  & { user: ValidatedUser },
   ) {
-    return this.todoService.getTodoBasedOnTheSearch(Number(page), Number(pageSize), search);
+    return this.todoService.getTodoBasedOnTheSearch(Number(req.user.id) , Number(page), Number(pageSize), search);
   }
 
 
