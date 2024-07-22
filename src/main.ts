@@ -9,7 +9,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({  // it is used for the give access of Pipe
     whitelist: true  // and this prevent the uncessery data that come from the frontend
   }))
-  app.use(cookieParser());
+  app.use(cookieParser());  //it enable for using the cookie 
   await app.listen(3000);
 }
 bootstrap();

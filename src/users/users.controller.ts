@@ -12,7 +12,7 @@ export class UsersController {
 
     //this is connect to strategy folder and give the access of token so that we can extract the user infomation
     @UseGuards(JwtGuard)  
-    @Get('admin')
+    @Get('users')
     async getUserByToken(@getUser() user:User) {  // we just get the user info from the req object
         console.log("users login successfully",{
             user: user,
