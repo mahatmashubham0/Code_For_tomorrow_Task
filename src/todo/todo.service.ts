@@ -57,7 +57,7 @@ export class TodoService {
   }
 
   // Delete Task
-  async removeTask(id) {
+  async removeTask(id:number) {
     try {
       const deletedTask = await this.prisma.todo.delete({
         where: {id}
@@ -90,14 +90,13 @@ export class TodoService {
   }
 
   // find the task according the search functionality and using pagination
-  async getTodoBasedOnTheSearch(userId: number, page: number, pageSize: number, search: string) {
+  async getTodoBasedOnTheSearch(page: number, pageSize: number, search: string) {
     const skip = (page - 1) * pageSize;
     const take = pageSize;
 
     const [todos, total] = await Promise.all([
       this.prisma.todo.findMany({
         where: {
-          id: userId,
           title: {
             contains: search,
             mode: "insensitive"
@@ -106,15 +105,11 @@ export class TodoService {
         skip,
         take,
         orderBy: {
-          createdAt: 'desc',
+          createdAt: 'asc',
         },
       }),
       // this below code count the total todo
-      this.prisma.todo.count({
-        where: {
-          id: userId
-        }
-      }),
+      this.prisma.todo.count(),
     ]);
 
     return {
@@ -129,20 +124,13 @@ export class TodoService {
   
   // find the task according the pagination feature
    async findDataByPagination(id: number ,page: number, pageSize: number) {
-      console.log(page , pageSize)
       const skip = (page - 1) * pageSize;
       const take = pageSize;
-  
+      console.log(page , pageSize , skip , take)
       const [todos, total] = await Promise.all([
         this.prisma.todo.findMany({
-          where: {
-            id
-          },
           skip,
           take,
-          orderBy: {
-            createdAt: 'desc',
-          },
         }),
         this.prisma.todo.count(),
       ]);
