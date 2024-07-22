@@ -7,7 +7,7 @@ import { UpdateDto } from "./dto/update.dto";
 import { JwtGuard } from "src/auth/guard";
 import { UserGuard } from "./guards/user.guard";
 import { ValidatedUser } from "./contants";
-import { AuthGuard } from "src/auth/guard/auth.guard";
+
 
 // @UseGuards(JwtGuard , new UserGuard)
 // using this line JwtGuard and UserGuard apply on every controller
@@ -18,7 +18,7 @@ export class TodoController {
 
 
   // Add Task
-  @UseGuards(new AuthGuard)
+  @UseGuards(new UserGuard)
   @Post('/add')
   async addTask(@Body() data: TodoDto, @Res() res:Response) {
     console.log(data);
