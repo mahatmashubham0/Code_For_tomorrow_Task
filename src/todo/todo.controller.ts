@@ -2,7 +2,6 @@ import { Body, Controller, Delete, Get, HttpStatus, Param, ParseIntPipe, Post, P
 import { TodoService } from "./todo.service";
 import { TodoDto } from "./dto/todo.dto"
 import { Request, Response } from "express";
-import { TaskStatus} from "@prisma/client";
 import { UpdateDto } from "./dto/update.dto";
 import { JwtGuard } from "src/auth/guard";
 import { UserGuard } from "./guards/user.guard";
@@ -58,52 +57,25 @@ export class TodoController {
   }
 
 
-  // Find All Tasks Based On the Pending and Completed status along with access own todo task not able to see another user task
-  @UseGuards(new UserGuard)
-  @Get()
-  async findByFilters(
-    @Query('status') status: TaskStatus , 
-    @Res() res:Response,
-    @Req() req: Request  & { user: ValidatedUser },
-  ) {
-    const result = await this.todoService.findByFilters(req.user.id , status);
-    return res.status(HttpStatus.CREATED).json({
-      status: true,
-      message: "Task is created",
-      data: result
-    })
-  }
+  
 
-
-  // find the task by pagination
-  @UseGuards(new UserGuard)
-  @Get('pages')
-  async findTaskByPagination(
-    @Query('page') page: number,
-    @Query('pageSize') pageSize: number,
-    @Req() req: Request  & { user: ValidatedUser },
-  ) {
-    return this.todoService.findDataByPagination(Number(req.user.id) , Number(page), Number(pageSize));
-  }
-
-
-
-  // find the task according the search functionality and using pagination
-  // /todo/search?page=1&pageSize=10&search=
+  // find the task according the search functionality and also apply pending || completed and using pagination
+  // /todo/search?page=1&pageSize=10&search=***&status=***
   @UseGuards(new UserGuard)
   @Get('search')
   async getAllTaskBasedOnSearch(
     @Query('page') page: number = 1,
     @Query('pageSize') pageSize: number = 10,
     @Query('search') search: string = '',
+    @Query('status') status: string = '',
     @Req() req: Request  & { user: ValidatedUser },
   ) {
-    return this.todoService.getTodoBasedOnTheSearch(Number(req.user.id) , Number(page), Number(pageSize), search);
+    return this.todoService.getTodoBasedOnTheSearch(Number(req.user.id) , Number(page), Number(pageSize), search , status);
   }
 
 
 
-  // Find All Tasks
+  // Find All Tasks which present in db
   @Get('/all')
   async findAllTasks(@Res() res:Response) {
     const result = await this.todoService.findAllTasks();

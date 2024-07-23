@@ -1,7 +1,6 @@
 import { Injectable, HttpException, HttpStatus } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { TodoDto } from "./dto/todo.dto";
-import { TaskStatus } from "@prisma/client";
 import { UpdateDto } from "./dto/update.dto";
 
 @Injectable()
@@ -69,85 +68,50 @@ export class TodoService {
     }
   }
 
-  // Find All Completed || pending Tasks
-  async findByFilters(id: string ,status: TaskStatus) {
-    try {
-        const todos = await this.prisma.todo.findMany({
-          where: {
-             authorID: Number(id)
-          },
-        });
-    
-        const filteredTodos = todos.filter(todo => todo.status === status);
-    
-        return filteredTodos;
 
-    } catch (err) {
-      console.error(err);
-      throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
+  // find the task according the search functionality and also apply pending || completed and using pagination
+async getTodoBasedOnTheSearch(id: number, page: number, pageSize: number, search: string, status?: string) {
+  const skip = (page - 1) * pageSize;
+  const take = pageSize;
+
+  const where: any = {
+    authorID: id,
+    title: {
+      contains: search,
+      mode: 'insensitive'
     }
+  };
+
+  // if present the status
+  if (status) {
+    where.status = status;
   }
 
-  // find the task according the search functionality and using pagination
-  async getTodoBasedOnTheSearch(id:number , page: number, pageSize: number, search: string) {
-    const skip = (page - 1) * pageSize;
-    const take = pageSize;
+  const [todos, total] = await Promise.all([
+    this.prisma.todo.findMany({
+      where,
+      skip,
+      take,
+    }),
 
-    const [todos, total] = await Promise.all([
-      this.prisma.todo.findMany({
-        where: {
-          authorID: id,
-          title: {
-            contains: search,
-            mode: "insensitive"
-          }
-        },
-        skip,
-        take,
-      }),
-      // this below code count the total todo
-      this.prisma.todo.count(),
-    ]);
+    this.prisma.todo.count({
+      where,
+    }),
+  ]);
 
-    return {
-      data: todos,
-      total,
-      page,
-      pageSize,
-      totalPages: Math.ceil(total / pageSize),
-    };
-  }
+  return {
+    data: todos,
+    total,
+    page,
+    pageSize,
+    totalPages: Math.ceil(total / pageSize),
+  };
+}
 
-  
-  // find the task according the pagination feature
-   async findDataByPagination(id: number ,page: number, pageSize: number) {
-      const skip = (page - 1) * pageSize;
-      const take = pageSize;
-      console.log(page , pageSize , skip , take)
-      const [todos, total] = await Promise.all([
-        this.prisma.todo.findMany({
-          where: {
-            authorID: id,
-          },
-          skip,
-          take,
-        }),
-        this.prisma.todo.count(),
-      ]);
-  
-      return {
-        data: todos,
-        total,
-        page,
-        pageSize,
-        totalPages: Math.ceil(total / pageSize),
-      };
-  }
   
   // Only User can access only own todo list task can not access the another user's todo 
   async getTodoListByUserId(id:number){
-    const todo = await this.prisma.user.findMany(
-        {
+    const todo = await this.prisma.user.findMany({
         where:{
           id: id,
         },
@@ -159,7 +123,7 @@ export class TodoService {
     return todo;
     } 
 
-  // Find All Tasks
+  // Find All Tasks present in db
   async findAllTasks() {
     try {
     const allTasks = await this.prisma.todo.findMany()

@@ -15,6 +15,6 @@ export class AuthGuard implements CanActivate {
         console.log(`Welcome ${request.user.firstname}!!`);
         return true
     }
-    return true;
+    return false;
   }
 }
